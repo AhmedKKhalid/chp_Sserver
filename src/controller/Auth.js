@@ -10,11 +10,10 @@ router.post('/signup', async (req, res) => {
         const userInfo = new User({
             userName, email, password, drawingOfTheMonth, numOfDrawings, stars, imageUrl,isDisabled,bio,deletedPaintings,font
         });
-
+            //aa
         User.findOne({ email: req.body.email }, async function (err, email) {
             if (email) {
                 res.status(404).json('EMAIL IS ALREADY EXIST');
-
             } else {
                 User.findOne({ userName: req.body.userName }, async function (err, user) {
                     if (user) {
