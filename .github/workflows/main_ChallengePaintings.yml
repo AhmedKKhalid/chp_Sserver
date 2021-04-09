@@ -52,5 +52,5 @@ jobs:
       with:
         app-name: 'ChallengePaintings'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_b6ad9afecfde4dd6a7d29020b81c6e63 }}
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_2d7e05ea35be42c099b8074e866990bc }}
         package: .
