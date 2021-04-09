@@ -1,6 +1,7 @@
 var ArgumentError = require('rest-facade').ArgumentError;
 var Auth0RestClient = require('../Auth0RestClient');
 var RetryRestClient = require('../RetryRestClient');
+var sanitizeArguments = require('../utils').sanitizeArguments;
 
 /**
  * Simple facade for consuming a REST API endpoint.
@@ -123,6 +124,21 @@ var UsersManager = function(options) {
   );
 
   /**
+   * Provides an abstraction layer for invalidating all remembered browsers for MFA.
+   *
+   * @type {external:RestClient}
+   */
+  var invalidateRememberBrowserAuth0RestClients = new Auth0RestClient(
+    options.baseUrl + '/users/:id/multifactor/actions/invalidate-remember-browser',
+    clientOptions,
+    options.tokenProvider
+  );
+  this.invalidateRememberBrowsers = new RetryRestClient(
+    invalidateRememberBrowserAuth0RestClients,
+    options.retry
+  );
+
+  /**
    * Provides an abstraction layer for CRD on roles for a user
    *
    * @type {external:RestClient}
@@ -145,6 +161,13 @@ var UsersManager = function(options) {
     options.tokenProvider
   );
   this.permissions = new RetryRestClient(userPermissionsClient, options.retry);
+
+  var organizationsClient = new Auth0RestClient(
+    options.baseUrl + '/users/:id/organizations',
+    clientOptions,
+    options.tokenProvider
+  );
+  this.organizations = new RetryRestClient(organizationsClient, options.retry);
 };
 
 /**
@@ -223,13 +246,18 @@ UsersManager.prototype.getAll = function(params) {
  *   console.log(users);
  * });
  *
- * @param   {String}    [email]           Email address of user(s) to find
- * @param   {Function}  [cb]              Callback function.
+ * @param   {String}    [email]                     Email address of user(s) to find
+ * @param   {Object}    [options]                   Additional options to pass to the endpoint
+ * @param   {String}    [options.fields]            Comma-separated list of fields to include or exclude in the result
+ * @param   {Boolean}   [options.include_fields]    Whether specified fields are to be included (true) or excluded (false). Defaults to true.
+ * @param   {Function}  [cb]                        Callback function.
  *
  * @return  {Promise|undefined}
  */
-UsersManager.prototype.getByEmail = function(email, callback) {
-  return this.usersByEmail.getAll({ email }, callback);
+UsersManager.prototype.getByEmail = function(email, options, cb) {
+  var { options, cb } = sanitizeArguments(options, cb);
+
+  return this.usersByEmail.getAll({ email, ...options }, cb);
 };
 
 /**
@@ -490,6 +518,8 @@ UsersManager.prototype.deleteMultifactorProvider = function(params, cb) {
  * @param   {Object}    params                Secondary user data.
  * @param   {String}    params.user_id        ID of the user to be linked.
  * @param   {String}    params.connection_id  ID of the connection to be used.
+ * @param   {String}    params.provider       Identity provider of the secondary user account being linked.
+ * @param   {String}    params.link_with      JWT for the secondary account being linked. If sending this parameter, provider, user_id, and connection_id must not be sent.
  * @param   {Function}  [cb]                  Callback function.
  *
  * @return  {Promise|undefined}
@@ -645,6 +675,39 @@ UsersManager.prototype.regenerateRecoveryCode = function(params, cb) {
   }
 
   return this.recoveryCodeRegenerations.create(params, {});
+};
+
+/**
+ * Invalidate all remembered browsers for MFA.
+ *
+ * @method    invalidateRememberBrowser
+ * @memberOf  module:management.UsersManager.prototype
+ *
+ * @example
+ * management.users.invalidateRememberBrowser({ id: USER_ID }, function (err, result) {
+ *   if (err) {
+ *     // Handle error.
+ *   }
+ *
+ *   // Invalidated all remembered browsers.
+ * });
+ *
+ * @param   {Object}    params                The user data object.
+ * @param   {String}    params.id             The user id.
+ * @param   {Function}  [cb]                  Callback function.
+ *
+ * @return  {Promise|undefined}
+ */
+UsersManager.prototype.invalidateRememberBrowser = function(params, cb) {
+  if (!params || !params.id) {
+    throw new ArgumentError('The userId cannot be null or undefined');
+  }
+
+  if (cb && cb instanceof Function) {
+    return this.invalidateRememberBrowsers.create(params, {}, cb);
+  }
+
+  return this.invalidateRememberBrowsers.create(params, {});
 };
 
 /**
@@ -871,6 +934,27 @@ UsersManager.prototype.removePermissions = function(params, data, cb) {
   }
 
   return this.permissions.delete(query, data);
+};
+
+/**
+ * Get a list of organizations for a user.
+ *
+ * @method    getUserOrganizations
+ * @memberOf  module:management.UsersManager.prototype
+ *
+ * @example
+ * management.users.getUserOrganizations({ id: USER_ID }, function (err, orgs) {
+ *   console.log(orgs);
+ * });
+ *
+ * @param   {Object}    data      The user data object.
+ * @param   {String}    data.id   The user id.
+ * @param   {Function}  [cb]      Callback function.
+ *
+ * @return  {Promise|undefined}
+ */
+UsersManager.prototype.getUserOrganizations = function() {
+  return this.organizations.getAll.apply(this.organizations, arguments);
 };
 
 module.exports = UsersManager;
