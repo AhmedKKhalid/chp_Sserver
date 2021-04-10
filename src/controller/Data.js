@@ -7,7 +7,6 @@ const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 
-var nodeoutlook = require('nodejs-nodemailer-outlook')
 
 
 

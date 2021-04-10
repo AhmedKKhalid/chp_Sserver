@@ -7,8 +7,6 @@ const AllDrawings = require('../UserDrawings/AllDrawings');
 var azure = require('azure-storage');
 const AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=storagechpp;AccountKey=FGXCDfk7l/liMTAlQHoy34Zy6617NknTHulQYsyKPHFbrxPpOrJcLXMUmdYLb1vwggPRNBDpukxJY6C6qKaDDA==;EndpointSuffix=core.windows.net";
 const blobServiceClient = azure.createBlobService(AZURE_STORAGE_CONNECTION_STRING);
-var cloudinary = require('cloudinary').v2
-var fs = require("fs");
 
 
 
@@ -193,36 +191,9 @@ router.get('/getPOTM', async (req, res) => {
 
 
 
-const deepai = require('deepai'); // OR include deepai.min.js as a script tag in your HTML
-
-router.post('/ArtisticStyle', async (req, res) => {
-    console.log('wel')
-try{
-     var realImg=req.body.realImg;
-     var style=req.body.style;
-     console.log(style)
-     var realImgBuffer = Buffer.from(realImg, "base64");
-    // var styleImgBuffer=Buffer.from(style, "base64");
-    deepai.setApiKey('quickstart-QUdJIGlzIGNvbWluZy4uLi4K');
-    console.log('s')
-
-    var resp = await deepai.callStandardApi("fast-style-transfer", {
-        content: realImgBuffer,
-        style: style,
-});
-
-console.log(resp)
-
-res.status(200).json(resp)
 
 
-}catch(e){
-    console.log('ee')
 
-
-}
-
-})
 
 
 

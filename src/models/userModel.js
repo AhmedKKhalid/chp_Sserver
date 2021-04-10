@@ -1,5 +1,4 @@
 const{Schema,model}=require('mongoose');
-const bcyrpts=require('bcryptjs');
 
 const userSchema=new Schema({
 
