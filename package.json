@@ -4,11 +4,7 @@
   "description": "myApp",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:unit && npm run test:safe && npm run test:safe:bats && npm run style",
-    "test:unit": "cd unit && npm install && npm test",
-    "test:safe": "./safe/support/runner.js",
-    "test:safe:bats": "bats --tap --recursive safe",
-    "web": "node src/index.js",
+    "test": "node src/index.js",
     "start": "node src/index.js"
   },
   "author": "ahmed khalid",
